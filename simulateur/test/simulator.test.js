@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadConfig } from '../src/config.js';
-import { loadRoute } from '../src/routes.js';
+import { createRoute, loadRoute } from '../src/routes.js';
 import { createFleet, FleetSimulator } from '../src/simulator.js';
 
 function testRoutes(count) {
@@ -68,7 +68,7 @@ test('la variable VEHICLE_COUNT dimensionne exactement la flotte', () => {
   assert.equal(fleet.length, 12);
 });
 
-test('chaque véhicule possède son propre itinéraire OSRM dans Paris 2e', () => {
+test('chaque véhicule possède son propre itinéraire OSRM dans le centre de Paris', () => {
   const fleet = createTestFleet({ vehicleCount: 10 });
 
   assert.equal(new Set(fleet.map(({ routeId }) => routeId)).size, 10);
@@ -82,6 +82,31 @@ test('chaque véhicule possède son propre itinéraire OSRM dans Paris 2e', () =
       assert.ok(coordinate.lat > 48.86 && coordinate.lat < 48.88);
       assert.ok(coordinate.lng > 2.33 && coordinate.lng < 2.36);
     }
+  }
+});
+
+test('les itinéraires couvrent le centre de Paris (1er au 4e arrondissement)', () => {
+  const routes = Array.from({ length: 7 }, (_, index) => createRoute(index));
+  const waypointKeys = routes.map(({ waypoints }) =>
+    waypoints.map(({ lat, lng }) => `${lat},${lng}`).join('|'));
+
+  assert.equal(new Set(routes.map(({ routeId }) => routeId)).size, 7);
+  assert.equal(new Set(waypointKeys).size, 7);
+
+  for (const route of routes) {
+    for (const { lat, lng } of route.waypoints) {
+      assert.ok(lat > 48.85 && lat < 48.875, `latitude hors Paris central: ${lat}`);
+      assert.ok(lng > 2.33 && lng < 2.36, `longitude hors Paris central: ${lng}`);
+    }
+  }
+});
+
+test('les vitesses simulées restent entre 70 et 90 km/h', () => {
+  const fleet = createTestFleet({ vehicleCount: 7 });
+
+  for (const vehicle of fleet) {
+    const position = vehicle.nextPosition(1);
+    assert.ok(position.speed >= 70 && position.speed <= 90, `vitesse hors plage: ${position.speed}`);
   }
 });
 

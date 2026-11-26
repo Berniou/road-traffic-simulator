@@ -1,8 +1,4 @@
-export const VEHICLE_COLORS = {
-  moving: '#34A853',
-  stopped: '#EA4335',
-  error: '#EA4335',
-};
+import { routeColor } from './route-colors.js';
 
 const STATE_LABELS = {
   moving: 'en mouvement',
@@ -37,7 +33,7 @@ function updateMarkerElement(element, position) {
   const label = `${position.carId} — ${STATE_LABELS[state]}`;
 
   element.dataset.state = state;
-  element.style.setProperty('--vehicle-color', VEHICLE_COLORS[state]);
+  element.style.setProperty('--vehicle-color', routeColor(position.routeId));
   element.title = label;
   element.setAttribute('aria-label', label);
 }

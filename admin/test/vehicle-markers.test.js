@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getVehicleState, VehicleMarkers, VEHICLE_COLORS } from '../src/vehicle-markers.js';
+import { routeColor } from '../src/route-colors.js';
+import { getVehicleState, VehicleMarkers } from '../src/vehicle-markers.js';
 
 class FakeElement {
   constructor() {
@@ -150,25 +151,32 @@ test('les marqueurs utilisent les coordonnées et le cap de leur véhicule', () 
   assert.equal(created[0].element.icon.style.transform, 'rotate(45deg)');
 });
 
-test('un véhicule en mouvement est vert', () => {
-  const { created, markers } = createMarkers();
-  markers.sync([position('car-001', { speed: 12 })]);
-
-  assert.equal(created[0].element.style['--vehicle-color'], '#34A853');
-  assert.equal(created[0].element.dataset.state, 'moving');
-});
-
-test('un véhicule à l’arrêt ou en erreur est rouge', () => {
+test('un véhicule prend la couleur de son itinéraire', () => {
   const { created, markers } = createMarkers();
   markers.sync([
-    position('car-001', { speed: 0 }),
-    position('car-002', { status: 'error' }),
+    position('car-001', { speed: 12, routeId: 'route-001' }),
+    position('car-002', { routeId: 'route-002' }),
   ]);
 
-  assert.equal(created[0].element.style['--vehicle-color'], '#EA4335');
+  assert.equal(created[0].element.style['--vehicle-color'], routeColor('route-001'));
+  assert.equal(created[1].element.style['--vehicle-color'], routeColor('route-002'));
+  assert.notEqual(
+    created[0].element.style['--vehicle-color'],
+    created[1].element.style['--vehicle-color'],
+  );
+});
+
+test('un véhicule à l’arrêt ou en erreur conserve la couleur de son itinéraire', () => {
+  const { created, markers } = createMarkers();
+  markers.sync([
+    position('car-001', { speed: 0, routeId: 'route-001' }),
+    position('car-002', { status: 'error', routeId: 'route-002' }),
+  ]);
+
+  assert.equal(created[0].element.style['--vehicle-color'], routeColor('route-001'));
   assert.equal(created[0].element.dataset.state, 'stopped');
   assert.equal(created[0].element.title, "car-001 — à l'arrêt");
-  assert.equal(created[1].element.style['--vehicle-color'], '#EA4335');
+  assert.equal(created[1].element.style['--vehicle-color'], routeColor('route-002'));
   assert.equal(created[1].element.dataset.state, 'error');
   assert.equal(created[1].element.title, 'car-002 — en erreur');
 });
@@ -309,7 +317,6 @@ test('le retrait des véhicules annule leurs animations en cours', () => {
 test('les états dégradés priment sur la vitesse et les marqueurs obsolètes sont retirés', () => {
   assert.equal(getVehicleState(position('car-001', { speed: 20, error: true })), 'error');
   assert.equal(getVehicleState(position('car-001', { speed: 0, status: 'error' })), 'error');
-  assert.equal(VEHICLE_COLORS.error, VEHICLE_COLORS.stopped);
 
   const { created, markers } = createMarkers();
   markers.sync([position('car-001'), position('car-002')]);

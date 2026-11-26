@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { routeColor } from '../src/route-colors.js';
 import {
   loadVehicleRoutes,
   renderVehicleRoutes,
-  VEHICLE_ROUTE_COLOR,
   VEHICLE_ROUTES_SOURCE_ID,
 } from '../src/vehicle-routes.js';
 
@@ -14,10 +14,16 @@ function routes() {
       type: 'LineString',
       coordinates: [[2.339, 48.868], [2.34, 48.869]],
     },
+  }, {
+    routeId: 'route-002',
+    geometry: {
+      type: 'LineString',
+      coordinates: [[2.34, 48.868], [2.341, 48.869]],
+    },
   }];
 }
 
-test('chaque géométrie OSRM est tracée en bleu #4285F4', () => {
+test('chaque itinéraire OSRM est tracé avec une couleur Google différente', () => {
   let source;
   let layer;
   const map = {
@@ -31,13 +37,17 @@ test('chaque géométrie OSRM est tracée en bleu #4285F4', () => {
   assert.equal(source.id, VEHICLE_ROUTES_SOURCE_ID);
   assert.equal(source.type, 'geojson');
   assert.equal(source.data.type, 'FeatureCollection');
-  assert.equal(source.data.features.length, 1);
+  assert.equal(source.data.features.length, 2);
   assert.equal(source.data.features[0].properties.routeId, 'route-001');
   assert.deepEqual(source.data.features[0].geometry, routes()[0].geometry);
+
+  const colors = source.data.features.map(({ properties }) => properties.color);
+  assert.deepEqual(colors, [routeColor('route-001'), routeColor('route-002')]);
+  assert.notEqual(colors[0], colors[1]);
+
   assert.equal(layer.type, 'line');
   assert.equal(layer.source, VEHICLE_ROUTES_SOURCE_ID);
-  assert.equal(layer.paint['line-color'], '#4285F4');
-  assert.equal(layer.paint['line-color'], VEHICLE_ROUTE_COLOR);
+  assert.deepEqual(layer.paint['line-color'], ['get', 'color']);
 });
 
 test('les itinéraires sont récupérés puis affichés dès que le style est chargé', async () => {

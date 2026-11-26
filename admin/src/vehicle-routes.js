@@ -1,4 +1,5 @@
-export const VEHICLE_ROUTE_COLOR = '#4285F4';
+import { routeColor } from './route-colors.js';
+
 export const VEHICLE_ROUTES_SOURCE_ID = 'vehicle-routes';
 
 function featureCollection(routes) {
@@ -6,7 +7,10 @@ function featureCollection(routes) {
     type: 'FeatureCollection',
     features: routes.map((route) => ({
       type: 'Feature',
-      properties: { routeId: route.routeId },
+      properties: {
+        routeId: route.routeId,
+        color: routeColor(route.routeId),
+      },
       geometry: route.geometry,
     })),
   };
@@ -28,7 +32,7 @@ export function renderVehicleRoutes(map, routes) {
     source: VEHICLE_ROUTES_SOURCE_ID,
     layout: { 'line-cap': 'round', 'line-join': 'round' },
     paint: {
-      'line-color': VEHICLE_ROUTE_COLOR,
+      'line-color': ['get', 'color'],
       'line-width': 4,
       'line-opacity': 0.85,
     },

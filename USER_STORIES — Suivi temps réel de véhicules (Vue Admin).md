@@ -162,8 +162,8 @@ afin de comprendre le trajet qu’il suit.
 3. Chaque itinéraire est tracé sur la carte avec une couleur différente l'un de l'aute. Les couleurs sont celle de la charte de Google.
 4. La position du véhicule est cohérente avec son itinéraire.
 5. Chaque véhicule a la couleur de son itinéraire.
-6. La taile de chaque voiture est de 20x30 px.
-7. Les véhicules roulent à entre 30 et 50 Km/h.
+6. La taile de chaque voiture est de 32x48 px.
+7. Les véhicules roulent à entre 70 et 90 Km/h.
 8. La longuer des itinéraires est de 5Km et 8 Km.
 9. Le service OSRM utilisé couvre Paris, notamment les 1er, 2e, 3e, 4e arrondissements.
 10. Une instance OSRM dédiée est prévue pour les environnements autres que la simple démonstration.

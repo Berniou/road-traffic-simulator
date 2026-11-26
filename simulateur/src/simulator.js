@@ -38,7 +38,7 @@ export class SimulatedVehicle {
     this.route = route;
     this.routeId = this.route.routeId;
     this.intervalMs = intervalMs;
-    this.speed = 8 + (index % 5);
+    this.speed = 70 + ((index * 5) % 21);
     this.segmentIndex = 0;
     this.distanceOnSegment = 0;
   }
@@ -65,7 +65,7 @@ export class SimulatedVehicle {
   }
 
   nextPosition(now = Date.now()) {
-    this.#advance(this.speed * this.intervalMs / 1000);
+    this.#advance((this.speed / 3.6) * this.intervalMs / 1000);
 
     const coordinates = this.route.coordinates;
     const from = coordinates[this.segmentIndex];

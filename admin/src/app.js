@@ -8,7 +8,7 @@ const map = new window.maplibregl.Map({
   container: 'map',
   style: createMapStyle(),
   center: PARIS_SECOND_ARRONDISSEMENT,
-  zoom: 15,
+  zoom: 14,
   attributionControl: { compact: true },
 });
 map.addControl(new window.maplibregl.NavigationControl(), 'bottom-left');
