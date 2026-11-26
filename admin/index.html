@@ -16,6 +16,10 @@
         <div id="map" aria-label="Carte OpenStreetMap centrée sur Paris 2e"></div>
         <header class="admin-panel">
           <h1>Traffic – Vue Admin</h1>
+          <p id="connection-status" class="connection-status" data-state="connecting" role="status" aria-live="polite">
+            <span class="connection-status__dot" aria-hidden="true"></span>
+            <span id="connection-label">Connexion au suivi temps réel…</span>
+          </p>
           <p id="message" role="status">Chargement des dernières positions connues…</p>
         </header>
         <ul id="fleet" aria-label="Dernières positions des véhicules"></ul>

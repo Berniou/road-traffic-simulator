@@ -1,5 +1,6 @@
 import { FleetStore } from './fleet-store.js';
 import { createMapStyle, PARIS_SECOND_ARRONDISSEMENT } from './map-style.js';
+import { RealtimeConnection } from './realtime-connection.js';
 import { VehicleMarkers } from './vehicle-markers.js';
 
 const map = new window.maplibregl.Map({
@@ -15,6 +16,8 @@ const store = new FleetStore();
 const vehicleMarkers = new VehicleMarkers({ map });
 const fleet = document.querySelector('#fleet');
 const message = document.querySelector('#message');
+const connectionStatus = document.querySelector('#connection-status');
+const connectionLabel = document.querySelector('#connection-label');
 const apiUrl = new URL(window.ADMIN_API_URL ?? `http://${window.location.hostname}:8080`);
 const webSocketUrl = new URL('/ws', apiUrl);
 webSocketUrl.protocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -57,19 +60,29 @@ function render(positions, change) {
 
 store.subscribe(render);
 
-const initialPositions = fetch(new URL('/positions', apiUrl))
-  .then((response) => {
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  })
-  .then((positions) => store.replaceAll(positions))
-  .catch((error) => {
-    message.textContent = `Impossible de charger les positions initiales : ${error.message}`;
-  });
+const connectionLabels = {
+  connecting: 'Connexion au suivi temps réel…',
+  connected: 'Suivi temps réel connecté',
+  disconnected: 'Connexion perdue · reconnexion automatique…',
+};
 
-const socket = new WebSocket(webSocketUrl);
-socket.addEventListener('message', (event) => {
-  store.upsert(JSON.parse(event.data));
+async function loadPositions() {
+  const response = await fetch(new URL('/positions', apiUrl));
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  store.replaceAll(await response.json());
+}
+
+const connection = new RealtimeConnection({
+  url: webSocketUrl,
+  loadPositions,
+  onPosition: (position) => store.upsert(position),
+  onStatusChange: (status) => {
+    connectionStatus.dataset.state = status;
+    connectionLabel.textContent = connectionLabels[status];
+  },
+  onError: (error) => {
+    const details = error instanceof Error ? ` : ${error.message}` : '';
+    message.textContent = `Connexion temps réel momentanément indisponible${details}`;
+  },
 });
-
-await initialPositions;
+connection.start();

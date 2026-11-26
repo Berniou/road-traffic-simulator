@@ -228,7 +228,7 @@ afin de suivre les véhicules sans sauts visuels brutaux.
 
 ### US-12 — Être informé des coupures et retrouver automatiquement la connexion
 
-**Statut : En attente**
+**Statut : Terminée**
 
 **En tant qu’administrateur de flotte**,  
 je veux être informé d’une perte de connexion et retrouver automatiquement le suivi,  
