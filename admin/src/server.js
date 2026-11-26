@@ -2,6 +2,8 @@ import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { extname, resolve, sep } from 'node:path';
+import { loadConfig } from '../../simulateur/src/config.js';
+import { loadRoutes } from '../../simulateur/src/routes.js';
 
 const root = resolve(import.meta.dirname, '..');
 const contentTypes = {
@@ -10,8 +12,32 @@ const contentTypes = {
   '.js': 'text/javascript; charset=utf-8',
 };
 
+let routesPromise;
+
+function getRoutes() {
+  routesPromise ??= loadRoutes(loadConfig()).catch((error) => {
+    routesPromise = undefined;
+    throw error;
+  });
+  return routesPromise;
+}
+
 const server = createServer(async (request, response) => {
   const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+
+  if (request.method === 'GET' && pathname === '/routes') {
+    try {
+      const routes = await getRoutes();
+      response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      response.end(JSON.stringify(routes));
+    } catch (error) {
+      console.error(`Impossible de calculer les itinéraires OSRM: ${error.message}`);
+      response.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+      response.end(JSON.stringify({ error: 'Impossible de calculer les itinéraires OSRM.' }));
+    }
+    return;
+  }
+
   const filePath = resolve(root, `.${pathname === '/' ? '/index.html' : pathname}`);
 
   if (!filePath.startsWith(`${root}${sep}`)) {

@@ -1,5 +1,3 @@
-import { createRoute } from './routes.js';
-
 function toRadians(value) {
   return value * Math.PI / 180;
 }
@@ -35,9 +33,9 @@ function interpolate(from, to, ratio) {
 }
 
 export class SimulatedVehicle {
-  constructor(index, intervalMs) {
+  constructor(index, intervalMs, route) {
     this.carId = `car-${String(index + 1).padStart(3, '0')}`;
-    this.route = createRoute(index);
+    this.route = route;
     this.routeId = this.route.routeId;
     this.intervalMs = intervalMs;
     this.speed = 8 + (index % 5);
@@ -45,20 +43,34 @@ export class SimulatedVehicle {
     this.distanceOnSegment = 0;
   }
 
+  #advance(distance) {
+    const coordinates = this.route.coordinates;
+    let remainingDistance = distance;
+
+    while (remainingDistance > 0) {
+      const from = coordinates[this.segmentIndex];
+      const to = coordinates[(this.segmentIndex + 1) % coordinates.length];
+      const segmentLength = distanceInMeters(from, to);
+      const distanceLeft = segmentLength - this.distanceOnSegment;
+      const traveledDistance = Math.min(remainingDistance, distanceLeft);
+
+      this.distanceOnSegment += traveledDistance;
+      remainingDistance -= traveledDistance;
+
+      if (this.distanceOnSegment >= segmentLength) {
+        this.distanceOnSegment = 0;
+        this.segmentIndex = (this.segmentIndex + 1) % coordinates.length;
+      }
+    }
+  }
+
   nextPosition(now = Date.now()) {
+    this.#advance(this.speed * this.intervalMs / 1000);
+
     const coordinates = this.route.coordinates;
     const from = coordinates[this.segmentIndex];
     const to = coordinates[(this.segmentIndex + 1) % coordinates.length];
     const segmentLength = distanceInMeters(from, to);
-
-    this.distanceOnSegment += this.speed * this.intervalMs / 1000;
-
-    if (this.distanceOnSegment >= segmentLength) {
-      this.distanceOnSegment %= segmentLength;
-      this.segmentIndex = (this.segmentIndex + 1) % coordinates.length;
-      return this.nextPosition(now);
-    }
-
     const position = interpolate(from, to, this.distanceOnSegment / segmentLength);
 
     return {
@@ -73,10 +85,14 @@ export class SimulatedVehicle {
   }
 }
 
-export function createFleet({ vehicleCount = 7, positionIntervalMs = 50 } = {}) {
+export function createFleet({ vehicleCount = 7, positionIntervalMs = 50, routes } = {}) {
+  if (!Array.isArray(routes) || routes.length < vehicleCount) {
+    throw new Error('Les itinéraires OSRM doivent être chargés avant de créer la flotte.');
+  }
+
   return Array.from(
     { length: vehicleCount },
-    (_, index) => new SimulatedVehicle(index, positionIntervalMs),
+    (_, index) => new SimulatedVehicle(index, positionIntervalMs, routes[index]),
   );
 }
 

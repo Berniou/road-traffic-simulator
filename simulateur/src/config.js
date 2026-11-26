@@ -1,5 +1,8 @@
+import { DEFAULT_OSRM_BASE_URL } from './routes.js';
+
 const DEFAULTS = Object.freeze({
   vehicleCount: 7,
+  osrmBaseUrl: DEFAULT_OSRM_BASE_URL,
   positionIntervalMs: 50,
   kafkaTopicPartitions: 1,
   kafkaReplicationFactor: 1,
@@ -20,6 +23,7 @@ function positiveInteger(value, name) {
 
 export function loadConfig(env = process.env) {
   return {
+    osrmBaseUrl: env.OSRM_BASE_URL ?? DEFAULTS.osrmBaseUrl,
     vehicleCount: env.VEHICLE_COUNT === undefined
       ? DEFAULTS.vehicleCount
       : positiveInteger(env.VEHICLE_COUNT, 'VEHICLE_COUNT'),

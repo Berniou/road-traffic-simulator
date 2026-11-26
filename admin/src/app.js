@@ -2,6 +2,7 @@ import { FleetStore } from './fleet-store.js';
 import { createMapStyle, PARIS_SECOND_ARRONDISSEMENT } from './map-style.js';
 import { RealtimeConnection } from './realtime-connection.js';
 import { VehicleMarkers } from './vehicle-markers.js';
+import { loadVehicleRoutes } from './vehicle-routes.js';
 
 const map = new window.maplibregl.Map({
   container: 'map',
@@ -16,6 +17,11 @@ const store = new FleetStore();
 const vehicleMarkers = new VehicleMarkers({ map });
 const fleet = document.querySelector('#fleet');
 const message = document.querySelector('#message');
+
+loadVehicleRoutes({ map, url: '/routes' }).catch((error) => {
+  message.textContent = `Impossible de charger les itinéraires : ${error.message}`;
+});
+
 const connectionStatus = document.querySelector('#connection-status');
 const connectionLabel = document.querySelector('#connection-label');
 const apiUrl = new URL(window.ADMIN_API_URL ?? `http://${window.location.hostname}:8080`);

@@ -1,5 +1,6 @@
 import { loadConfig } from './config.js';
 import { createKafkaPositionPublisher } from './kafka-publisher.js';
+import { loadRoutes } from './routes.js';
 import { FleetSimulator } from './simulator.js';
 
 const config = loadConfig();
@@ -12,7 +13,8 @@ try {
   publisher = kafka.publisher;
   disconnectKafka = kafka.disconnect;
 
-  simulator = new FleetSimulator(config, (position) => {
+  const routes = await loadRoutes(config);
+  simulator = new FleetSimulator({ ...config, routes }, (position) => {
     if (process.env.LOG_POSITIONS === 'true') {
       console.log(JSON.stringify(position));
     }

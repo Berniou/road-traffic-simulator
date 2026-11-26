@@ -149,7 +149,7 @@ afin de visualiser l’environnement géographique dans lequel évoluent les vé
 
 ### US-08 — Visualiser les itinéraires des véhicules
 
-**Statut : En attente**
+**Statut : Terminée**
 
 **En tant qu’administrateur de flotte**,  
 je veux voir l’itinéraire associé à chaque véhicule,  
