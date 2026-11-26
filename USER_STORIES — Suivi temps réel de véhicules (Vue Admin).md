@@ -71,7 +71,7 @@ afin de disposer d’une information actualisée sans surcharger l’interface.
 
 ### US-04 — Diffuser les positions au WebSocket Admin
 
-**Statut : En attente**
+**Statut : Terminée**
 
 **En tant qu’administrateur de flotte**,  
 je veux recevoir chaque nouvelle position dès qu’elle est disponible,  
