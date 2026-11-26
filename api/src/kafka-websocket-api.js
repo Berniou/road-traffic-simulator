@@ -15,11 +15,11 @@ export function createPositionMessageHandler(broadcaster, positionRepository) {
 }
 
 export async function createKafkaWebSocketApi(config, dependencies = {}) {
-  const adminServer = dependencies.adminServer
-    ?? await createAdminWebSocketServer(config);
   let consumer = dependencies.consumer;
   const positionRepository = dependencies.positionRepository
     ?? (config.databaseUrl ? createPostgresPositionRepository(config.databaseUrl) : undefined);
+  const adminServer = dependencies.adminServer
+    ?? await createAdminWebSocketServer(config, { positionRepository });
 
   try {
     await positionRepository?.initialize();

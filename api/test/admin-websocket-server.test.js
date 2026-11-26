@@ -8,6 +8,23 @@ function position(carId, ts) {
   return { carId, lat: 48.87, lng: 2.34, heading: 90, speed: 10, routeId: 'route-001', ts };
 }
 
+test("la ressource HTTP restitue les dernières positions persistées pour l'initialisation", async (t) => {
+  const positions = [position('car-001', 100), position('car-002', 200)];
+  const server = await createAdminWebSocketServer({
+    webSocketHost: '127.0.0.1',
+    webSocketPort: 0,
+    webSocketPath: '/ws',
+  }, {
+    positionRepository: { findAll: async () => positions },
+  });
+  t.after(() => server.close());
+
+  const response = await fetch(`http://127.0.0.1:${server.address().port}/positions`);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), positions);
+});
+
 test('les clients Admin reçoivent les positions sans rechargement ni regroupement', async (t) => {
   const server = await createAdminWebSocketServer({
     webSocketHost: '127.0.0.1',

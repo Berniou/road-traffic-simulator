@@ -109,7 +109,7 @@ afin de restaurer l’état courant de la flotte après un redémarrage de l’A
 
 ### US-06 — Charger l’état initial de la flotte
 
-**Statut : En attente**
+**Statut : Terminée**
 
 **En tant qu’administrateur de flotte**,  
 je veux voir les dernières positions connues dès l’ouverture de la vue Admin,  
