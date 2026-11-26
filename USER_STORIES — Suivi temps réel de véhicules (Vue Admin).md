@@ -169,7 +169,7 @@ afin de comprendre le trajet qu’il suit.
 
 ### US-09 — Identifier les véhicules et leur état
 
-**Statut : En attente**
+**Statut : Terminée**
 
 **En tant qu’administrateur de flotte**,  
 je veux identifier chaque véhicule et comprendre son orientation et son état,  

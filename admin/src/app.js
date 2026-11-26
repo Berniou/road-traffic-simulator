@@ -1,5 +1,6 @@
 import { FleetStore } from './fleet-store.js';
 import { createMapStyle, PARIS_SECOND_ARRONDISSEMENT } from './map-style.js';
+import { VehicleMarkers } from './vehicle-markers.js';
 
 const map = new window.maplibregl.Map({
   container: 'map',
@@ -11,6 +12,7 @@ const map = new window.maplibregl.Map({
 map.addControl(new window.maplibregl.NavigationControl(), 'bottom-left');
 
 const store = new FleetStore();
+const vehicleMarkers = new VehicleMarkers({ map });
 const fleet = document.querySelector('#fleet');
 const message = document.querySelector('#message');
 const apiUrl = new URL(window.ADMIN_API_URL ?? `http://${window.location.hostname}:8080`);
@@ -18,6 +20,7 @@ const webSocketUrl = new URL('/ws', apiUrl);
 webSocketUrl.protocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
 
 function render(positions) {
+  vehicleMarkers.sync(positions);
   fleet.replaceChildren();
   message.textContent = positions.length === 0 ? 'Aucune position connue.' : '';
 

@@ -89,6 +89,36 @@ body {
   font-size: 0.75rem;
 }
 
+.vehicle-marker {
+  width: 2rem;
+  height: 3rem;
+  color: var(--vehicle-color);
+  cursor: pointer;
+}
+
+.vehicle-marker__icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0.125rem 0.125rem rgb(0 0 0 / 35%));
+  transform-origin: center;
+}
+
+.vehicle-marker__body {
+  fill: currentColor;
+  stroke: #ffffff;
+  stroke-width: 1.5;
+}
+
+.vehicle-marker__window {
+  fill: rgb(255 255 255 / 80%);
+}
+
+.vehicle-marker__light {
+  fill: #ffffff;
+}
+
 .maplibregl-ctrl-attrib,
 .maplibregl-ctrl-group {
   font-family: Montserrat, Poppins, system-ui, sans-serif;
