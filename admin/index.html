@@ -4,14 +4,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Traffic – Vue Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
     <link rel="stylesheet" href="/src/style.css">
   </head>
   <body>
-    <main>
-      <h1>Traffic – Vue Admin</h1>
-      <p id="message" role="status">Chargement des dernières positions connues…</p>
-      <ul id="fleet" aria-label="Dernières positions des véhicules"></ul>
+    <main class="admin-shell">
+      <section class="map-frame" aria-label="Carte de la flotte à Paris 2e">
+        <div id="map" aria-label="Carte OpenStreetMap centrée sur Paris 2e"></div>
+        <header class="admin-panel">
+          <h1>Traffic – Vue Admin</h1>
+          <p id="message" role="status">Chargement des dernières positions connues…</p>
+        </header>
+        <ul id="fleet" aria-label="Dernières positions des véhicules"></ul>
+      </section>
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
     <script type="module" src="/src/app.js"></script>
   </body>
 </html>

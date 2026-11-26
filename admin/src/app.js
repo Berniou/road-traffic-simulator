@@ -1,4 +1,14 @@
 import { FleetStore } from './fleet-store.js';
+import { createMapStyle, PARIS_SECOND_ARRONDISSEMENT } from './map-style.js';
+
+const map = new window.maplibregl.Map({
+  container: 'map',
+  style: createMapStyle(),
+  center: PARIS_SECOND_ARRONDISSEMENT,
+  zoom: 15,
+  attributionControl: { compact: true },
+});
+map.addControl(new window.maplibregl.NavigationControl(), 'bottom-left');
 
 const store = new FleetStore();
 const fleet = document.querySelector('#fleet');

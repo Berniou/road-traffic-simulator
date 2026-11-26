@@ -130,7 +130,7 @@ afin de ne pas attendre le prochain événement temps réel pour afficher les v�
 
 ### US-07 — Consulter la carte de la flotte
 
-**Statut : En attente**
+**Statut : Terminée**
 
 **En tant qu’administrateur de flotte**,  
 je veux consulter une carte centrée sur Paris 2e,  
