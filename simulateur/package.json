@@ -1,0 +1,14 @@
+{
+  "name": "suivi-temps-reel-simulateur",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Simulateur configurable de véhicules pour le suivi temps réel",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
