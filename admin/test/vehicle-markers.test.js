@@ -28,6 +28,35 @@ const fakeDocument = {
   createElement: () => new FakeElement(),
 };
 
+function createAnimationClock() {
+  let time = 0;
+  let nextFrameId = 0;
+  const callbacks = new Map();
+
+  return {
+    get now() {
+      return time;
+    },
+    requestAnimationFrame(callback) {
+      nextFrameId += 1;
+      callbacks.set(nextFrameId, callback);
+      return nextFrameId;
+    },
+    cancelAnimationFrame(frameId) {
+      callbacks.delete(frameId);
+    },
+    tick(duration) {
+      time += duration;
+      const pendingCallbacks = [...callbacks.values()];
+      callbacks.clear();
+      for (const callback of pendingCallbacks) callback(time);
+    },
+    get pendingFrames() {
+      return callbacks.size;
+    },
+  };
+}
+
 function position(carId, overrides = {}) {
   return {
     carId,
@@ -41,9 +70,17 @@ function position(carId, overrides = {}) {
   };
 }
 
-function createMarkers() {
+function assertCoordinatesClose(marker, expected) {
+  assert.equal(marker.coordinates.length, expected.length);
+  for (const [index, coordinate] of marker.coordinates.entries()) {
+    assert.ok(Math.abs(coordinate - expected[index]) < 1e-12);
+  }
+}
+
+function createMarkers({ animationDuration = 0 } = {}) {
   const created = [];
-  const map = {};
+  const map = { center: [2.34, 48.87], zoom: 15 };
+  const clock = createAnimationClock();
 
   class FakeMarker {
     constructor({ element, anchor }) {
@@ -72,7 +109,16 @@ function createMarkers() {
   return {
     created,
     map,
-    markers: new VehicleMarkers({ map, Marker: FakeMarker, document: fakeDocument }),
+    clock,
+    markers: new VehicleMarkers({
+      map,
+      Marker: FakeMarker,
+      document: fakeDocument,
+      requestAnimationFrame: clock.requestAnimationFrame,
+      cancelAnimationFrame: clock.cancelAnimationFrame,
+      now: () => clock.now,
+      animationDuration,
+    }),
   };
 }
 
@@ -176,6 +222,87 @@ test('deux véhicules évoluent indépendamment à leur propre cadence', () => {
   assert.deepEqual(created[0].coordinates, [2.34, 48.872]);
   assert.equal(created[1].coordinateUpdates, 2);
   assert.deepEqual(created[1].coordinates, [2.34, 48.873]);
+});
+
+test('le marqueur est interpolé progressivement avec un cap cohérent et sans modifier la carte', () => {
+  const { created, map, clock, markers } = createMarkers({ animationDuration: 300 });
+  markers.upsert(position('car-001', { heading: 350 }));
+  const initialMapState = { center: map.center, zoom: map.zoom };
+
+  markers.upsert(position('car-001', { lat: 48.872, lng: 2.342, heading: 10, ts: 200 }));
+
+  assertCoordinatesClose(created[0], [2.34, 48.87]);
+  clock.tick(150);
+  assertCoordinatesClose(created[0], [2.341, 48.871]);
+  assert.equal(created[0].element.icon.style.transform, 'rotate(0deg)');
+  assert.deepEqual(map, initialMapState);
+
+  clock.tick(150);
+  assertCoordinatesClose(created[0], [2.342, 48.872]);
+  assert.equal(created[0].element.icon.style.transform, 'rotate(10deg)');
+  assert.equal(clock.pendingFrames, 0);
+});
+
+test('chaque interpolation avance indépendamment des autres véhicules', () => {
+  const { created, clock, markers } = createMarkers({ animationDuration: 300 });
+  markers.sync([position('car-001'), position('car-002')]);
+
+  markers.upsert(position('car-001', { lat: 48.872, ts: 200 }));
+  clock.tick(100);
+  assert.equal(created[0].coordinateUpdates, 2);
+  assert.equal(created[1].coordinateUpdates, 1);
+
+  markers.upsert(position('car-002', { lng: 2.35, ts: 200 }));
+  clock.tick(100);
+  assert.equal(created[0].coordinateUpdates, 3);
+  assert.equal(created[1].coordinateUpdates, 2);
+
+  clock.tick(100);
+  assert.deepEqual(created[0].coordinates, [2.34, 48.872]);
+  assert.equal(created[0].coordinateUpdates, 4);
+  assert.equal(created[1].coordinateUpdates, 3);
+
+  clock.tick(100);
+  assert.deepEqual(created[1].coordinates, [2.35, 48.87]);
+  assert.equal(created[1].coordinateUpdates, 4);
+});
+
+test('une nouvelle position repart de la position affichée vers la cible la plus récente', () => {
+  const { created, clock, markers } = createMarkers({ animationDuration: 300 });
+  markers.upsert(position('car-001'));
+  markers.upsert(position('car-001', { lat: 48.872, heading: 180, ts: 200 }));
+  clock.tick(150);
+  assertCoordinatesClose(created[0], [2.34, 48.871]);
+  assert.equal(created[0].element.icon.style.transform, 'rotate(135deg)');
+
+  markers.upsert(position('car-001', { lat: 48.876, heading: 270, ts: 300 }));
+  assertCoordinatesClose(created[0], [2.34, 48.871]);
+  assert.equal(created[0].element.icon.style.transform, 'rotate(135deg)');
+
+  clock.tick(150);
+  assertCoordinatesClose(created[0], [2.34, 48.8735]);
+  assert.equal(created[0].element.icon.style.transform, 'rotate(202.5deg)');
+
+  clock.tick(150);
+  assertCoordinatesClose(created[0], [2.34, 48.876]);
+  assert.equal(created[0].element.icon.style.transform, 'rotate(270deg)');
+  assert.equal(clock.pendingFrames, 0);
+});
+
+test('le retrait des véhicules annule leurs animations en cours', () => {
+  const { created, clock, markers } = createMarkers({ animationDuration: 300 });
+  markers.sync([position('car-001'), position('car-002')]);
+  markers.upsert(position('car-001', { lat: 48.872, ts: 200 }));
+  markers.upsert(position('car-002', { lat: 48.873, ts: 200 }));
+  assert.equal(clock.pendingFrames, 2);
+
+  markers.sync([]);
+
+  assert.equal(clock.pendingFrames, 0);
+  assert.ok(created.every(({ removed }) => removed));
+  const coordinateUpdates = created.map((marker) => marker.coordinateUpdates);
+  clock.tick(300);
+  assert.deepEqual(created.map((marker) => marker.coordinateUpdates), coordinateUpdates);
 });
 
 test('les états dégradés priment sur la vitesse et les marqueurs obsolètes sont retirés', () => {

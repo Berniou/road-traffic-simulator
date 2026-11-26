@@ -40,19 +40,49 @@ function updateMarkerElement(element, position) {
   element.style.setProperty('--vehicle-color', VEHICLE_COLORS[state]);
   element.title = label;
   element.setAttribute('aria-label', label);
-  element.querySelector('.vehicle-marker__icon').style.transform = `rotate(${position.heading}deg)`;
+}
+
+function renderMarkerPosition(entry, position) {
+  entry.position = position;
+  entry.marker.setLngLat([position.lng, position.lat]);
+  entry.element.querySelector('.vehicle-marker__icon').style.transform = `rotate(${position.heading}deg)`;
+}
+
+function interpolate(from, to, progress) {
+  return from + (to - from) * progress;
+}
+
+function interpolateHeading(from, to, progress) {
+  const delta = ((to - from + 540) % 360) - 180;
+  return (from + delta * progress + 360) % 360;
 }
 
 export class VehicleMarkers {
   #map;
   #Marker;
   #document;
+  #requestAnimationFrame;
+  #cancelAnimationFrame;
+  #now;
+  #animationDuration;
   #markers = new Map();
 
-  constructor({ map, Marker = window.maplibregl.Marker, document = window.document }) {
+  constructor({
+    map,
+    Marker = window.maplibregl.Marker,
+    document = window.document,
+    requestAnimationFrame = window.requestAnimationFrame.bind(window),
+    cancelAnimationFrame = window.cancelAnimationFrame.bind(window),
+    now = () => window.performance.now(),
+    animationDuration = 300,
+  }) {
     this.#map = map;
     this.#Marker = Marker;
     this.#document = document;
+    this.#requestAnimationFrame = requestAnimationFrame;
+    this.#cancelAnimationFrame = cancelAnimationFrame;
+    this.#now = now;
+    this.#animationDuration = animationDuration;
   }
 
   upsert(position) {
@@ -61,12 +91,31 @@ export class VehicleMarkers {
     if (!entry) {
       const element = createMarkerElement(this.#document, position);
       const marker = new this.#Marker({ element, anchor: 'center' }).addTo(this.#map);
-      entry = { element, marker };
+      entry = { element, marker, position, animation: null };
       this.#markers.set(position.carId, entry);
+      renderMarkerPosition(entry, position);
+      updateMarkerElement(element, position);
+      return;
     }
 
-    entry.marker.setLngLat([position.lng, position.lat]);
     updateMarkerElement(entry.element, position);
+    this.#cancelAnimation(entry);
+
+    if (this.#animationDuration <= 0) {
+      renderMarkerPosition(entry, position);
+      return;
+    }
+
+    const animation = {
+      from: entry.position,
+      to: position,
+      startedAt: this.#now(),
+      frameId: null,
+    };
+    entry.animation = animation;
+    animation.frameId = this.#requestAnimationFrame((timestamp) => {
+      this.#animate(entry, animation, timestamp);
+    });
   }
 
   sync(positions) {
@@ -79,8 +128,39 @@ export class VehicleMarkers {
 
     for (const [carId, entry] of this.#markers) {
       if (visibleCarIds.has(carId)) continue;
+      this.#cancelAnimation(entry);
       entry.marker.remove();
       this.#markers.delete(carId);
     }
+  }
+
+  #cancelAnimation(entry) {
+    if (!entry.animation) return;
+    this.#cancelAnimationFrame(entry.animation.frameId);
+    entry.animation = null;
+  }
+
+  #animate(entry, animation, timestamp) {
+    if (entry.animation !== animation) return;
+
+    const elapsed = Math.max(0, timestamp - animation.startedAt);
+    const progress = Math.min(1, elapsed / this.#animationDuration);
+    const { from, to } = animation;
+    const position = {
+      ...to,
+      lat: interpolate(from.lat, to.lat, progress),
+      lng: interpolate(from.lng, to.lng, progress),
+      heading: interpolateHeading(from.heading, to.heading, progress),
+    };
+    renderMarkerPosition(entry, position);
+
+    if (progress === 1) {
+      entry.animation = null;
+      return;
+    }
+
+    animation.frameId = this.#requestAnimationFrame((nextTimestamp) => {
+      this.#animate(entry, animation, nextTimestamp);
+    });
   }
 }

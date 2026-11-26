@@ -209,7 +209,7 @@ afin de suivre une flotte réellement asynchrone.
 
 ### US-11 — Fluidifier le déplacement des véhicules
 
-**Statut : En attente**
+**Statut : Terminée**
 
 **En tant qu’administrateur de flotte**,  
 je veux que les icônes se déplacent progressivement entre deux positions,  
