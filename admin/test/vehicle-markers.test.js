@@ -97,6 +97,7 @@ function createMarkers({ animationDuration = 0 } = {}) {
     }
 
     addTo(target) {
+      assert.ok(this.coordinates, 'les coordonnées doivent être définies avant l’ajout à la carte');
       this.map = target;
       return this;
     }

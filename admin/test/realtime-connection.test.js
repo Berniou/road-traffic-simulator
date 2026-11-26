@@ -222,3 +222,41 @@ test('l’arrêt annule la reconnexion programmée', () => {
   assert.equal(timers.size, 0);
   assert.equal(sockets.length, 1);
 });
+
+test('les minuteurs natifs conservent leur contexte global', () => {
+  const originalSetTimeout = globalThis.setTimeout;
+  const originalClearTimeout = globalThis.clearTimeout;
+  const calls = [];
+
+  globalThis.setTimeout = function (callback, delay) {
+    assert.equal(this, globalThis);
+    assert.equal(typeof callback, 'function');
+    calls.push(['set', delay]);
+    return 42;
+  };
+  globalThis.clearTimeout = function (id) {
+    assert.equal(this, globalThis);
+    calls.push(['clear', id]);
+  };
+
+  try {
+    const connection = new RealtimeConnection({
+      url: 'ws://localhost:8080/ws',
+      WebSocket: class {
+        constructor() {
+          throw new Error('Connexion refusée');
+        }
+      },
+      loadPositions: async () => {},
+      onPosition: () => {},
+    });
+
+    connection.start();
+    connection.stop();
+
+    assert.deepEqual(calls, [['set', 1000], ['clear', 42]]);
+  } finally {
+    globalThis.setTimeout = originalSetTimeout;
+    globalThis.clearTimeout = originalClearTimeout;
+  }
+});

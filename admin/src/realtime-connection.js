@@ -25,8 +25,8 @@ export class RealtimeConnection {
     onError = () => {},
     initialReconnectDelay = 1000,
     maxReconnectDelay = 30000,
-    setTimeout = globalThis.setTimeout,
-    clearTimeout = globalThis.clearTimeout,
+    setTimeout = globalThis.setTimeout.bind(globalThis),
+    clearTimeout = globalThis.clearTimeout.bind(globalThis),
   }) {
     this.#url = url;
     this.#WebSocket = WebSocketImplementation;

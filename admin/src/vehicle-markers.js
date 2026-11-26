@@ -90,10 +90,11 @@ export class VehicleMarkers {
 
     if (!entry) {
       const element = createMarkerElement(this.#document, position);
-      const marker = new this.#Marker({ element, anchor: 'center' }).addTo(this.#map);
+      const marker = new this.#Marker({ element, anchor: 'center' });
       entry = { element, marker, position, animation: null };
       this.#markers.set(position.carId, entry);
       renderMarkerPosition(entry, position);
+      marker.addTo(this.#map);
       updateMarkerElement(element, position);
       return;
     }
