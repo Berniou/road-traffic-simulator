@@ -6,6 +6,7 @@ const DEFAULTS = Object.freeze({
   kafkaClientId: 'admin-position-api',
   kafkaGroupId: 'admin-position-api',
   kafkaLatestTopic: 'car.positions.latest',
+  databaseUrl: 'postgresql://postgres:postgres@localhost:5432/fleet',
 });
 
 function port(value) {
@@ -28,5 +29,6 @@ export function loadConfig(env = process.env) {
     kafkaClientId: env.KAFKA_CLIENT_ID ?? DEFAULTS.kafkaClientId,
     kafkaGroupId: env.KAFKA_GROUP_ID ?? DEFAULTS.kafkaGroupId,
     kafkaLatestTopic: env.KAFKA_LATEST_TOPIC ?? DEFAULTS.kafkaLatestTopic,
+    databaseUrl: env.DATABASE_URL ?? DEFAULTS.databaseUrl,
   };
 }

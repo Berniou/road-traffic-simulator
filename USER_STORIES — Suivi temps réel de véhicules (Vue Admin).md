@@ -90,7 +90,7 @@ afin de suivre les véhicules sans recharger la page.
 
 ### US-05 — Conserver uniquement la dernière position connue
 
-**Statut : En attente**
+**Statut : Terminée**
 
 **En tant qu’exploitant de la plateforme**,  
 je veux persister la dernière position de chaque véhicule,  

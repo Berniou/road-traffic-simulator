@@ -20,6 +20,18 @@ test('chaque message Kafka est diffusé immédiatement et indépendamment', asyn
   assert.deepEqual(received, [position('car-001', 1), position('car-002', 2)]);
 });
 
+test('chaque position consommée est persistée avant sa diffusion', async () => {
+  const calls = [];
+  const handler = createPositionMessageHandler(
+    { broadcast: () => calls.push('diffusion') },
+    { save: async () => calls.push('persistance') },
+  );
+
+  await handler(kafkaMessage(position('car-001', 1)));
+
+  assert.deepEqual(calls, ['persistance', 'diffusion']);
+});
+
 test('un message Kafka invalide est ignoré sans interrompre les suivants', async (t) => {
   t.mock.method(console, 'error', () => {});
   const received = [];
@@ -29,6 +41,34 @@ test('un message Kafka invalide est ignoré sans interrompre les suivants', asyn
   await handler(kafkaMessage(position('car-001', 2)));
 
   assert.deepEqual(received, [position('car-001', 2)]);
+});
+
+test("l'API initialise et ferme le stockage des positions avec son cycle de vie", async () => {
+  const calls = [];
+  const consumer = {
+    connect: async () => {},
+    subscribe: async () => {},
+    run: async () => {},
+    disconnect: async () => {},
+  };
+  const adminServer = {
+    broadcaster: { broadcast: () => {} },
+    close: async () => {},
+  };
+  const positionRepository = {
+    initialize: async () => calls.push('initialize'),
+    save: async () => {},
+    close: async () => calls.push('close repository'),
+  };
+
+  const api = await createKafkaWebSocketApi(
+    { kafkaLatestTopic: 'car.positions.latest' },
+    { consumer, adminServer, positionRepository },
+  );
+  await api.close();
+
+  assert.equal(api.positionRepository, positionRepository);
+  assert.deepEqual(calls, ['initialize', 'close repository']);
 });
 
 test("l'API s'abonne au topic filtré et transmet ses messages au serveur Admin", async () => {

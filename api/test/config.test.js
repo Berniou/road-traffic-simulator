@@ -8,6 +8,7 @@ test("l'API consomme car.positions.latest et expose le WebSocket Admin par défa
   assert.equal(config.kafkaGroupId, 'admin-position-api');
   assert.equal(config.webSocketPort, 8080);
   assert.equal(config.webSocketPath, '/ws');
+  assert.equal(config.databaseUrl, 'postgresql://postgres:postgres@localhost:5432/fleet');
 });
 
 test('la configuration Kafka et WebSocket est personnalisable', () => {
@@ -16,10 +17,12 @@ test('la configuration Kafka et WebSocket est personnalisable', () => {
     KAFKA_LATEST_TOPIC: 'positions.latest',
     WEBSOCKET_PORT: '9090',
     WEBSOCKET_PATH: '/admin',
+    DATABASE_URL: 'postgresql://db:5432/custom-fleet',
   });
   assert.deepEqual(config.kafkaBrokers, ['kafka-1:9092', 'kafka-2:9092']);
   assert.equal(config.kafkaLatestTopic, 'positions.latest');
   assert.equal(config.webSocketPort, 9090);
   assert.equal(config.webSocketPath, '/admin');
+  assert.equal(config.databaseUrl, 'postgresql://db:5432/custom-fleet');
   assert.throws(() => loadConfig({ WEBSOCKET_PORT: '70000' }), /WEBSOCKET_PORT/);
 });

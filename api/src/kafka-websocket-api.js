@@ -1,13 +1,15 @@
 import { Kafka, logLevel } from 'kafkajs';
 import { createAdminWebSocketServer } from './admin-websocket-server.js';
+import { createPostgresPositionRepository } from './persistence/postgres-position-repository.js';
 
-export function createPositionMessageHandler(broadcaster) {
+export function createPositionMessageHandler(broadcaster, positionRepository) {
   return async ({ message }) => {
     try {
       const position = JSON.parse(message.value.toString());
+      await positionRepository?.save(position);
       broadcaster.broadcast(position);
     } catch (error) {
-      console.error(`Position filtrée invalide ignorée: ${error.message}`);
+      console.error(`Position filtrée non traitée: ${error.message}`);
     }
   };
 }
@@ -16,8 +18,11 @@ export async function createKafkaWebSocketApi(config, dependencies = {}) {
   const adminServer = dependencies.adminServer
     ?? await createAdminWebSocketServer(config);
   let consumer = dependencies.consumer;
+  const positionRepository = dependencies.positionRepository
+    ?? (config.databaseUrl ? createPostgresPositionRepository(config.databaseUrl) : undefined);
 
   try {
+    await positionRepository?.initialize();
     if (!consumer) {
       const kafka = new Kafka({
         clientId: config.kafkaClientId,
@@ -30,18 +35,24 @@ export async function createKafkaWebSocketApi(config, dependencies = {}) {
     await consumer.connect();
     await consumer.subscribe({ topic: config.kafkaLatestTopic, fromBeginning: false });
     await consumer.run({
-      eachMessage: createPositionMessageHandler(adminServer.broadcaster),
+      eachMessage: createPositionMessageHandler(adminServer.broadcaster, positionRepository),
     });
   } catch (error) {
-    await Promise.allSettled([consumer?.disconnect(), adminServer.close()]);
+    await Promise.allSettled([
+      consumer?.disconnect(),
+      adminServer.close(),
+      positionRepository?.close(),
+    ]);
     throw error;
   }
 
   return {
     adminServer,
+    positionRepository,
     close: async () => {
       await consumer.disconnect();
       await adminServer.close();
+      await positionRepository?.close();
     },
   };
 }
