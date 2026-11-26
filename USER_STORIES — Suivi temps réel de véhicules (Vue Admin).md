@@ -159,11 +159,15 @@ afin de comprendre le trajet qu’il suit.
 
 1. Chaque véhicule possède un itinéraire fixé à l’avance et identifié par `routeId`.
 2. L’itinéraire est calculé par le service `route` d’OSRM et sa géométrie GeoJSON est récupérée.
-3. Chaque itinéraire est tracé sur la carte avec la couleur principale `#4285F4`.
+3. Chaque itinéraire est tracé sur la carte avec une couleur différente l'un de l'aute. Les couleurs sont celle de la charte de Google.
 4. La position du véhicule est cohérente avec son itinéraire.
-5. Le service OSRM utilisé couvre Paris, notamment le 2e arrondissement.
-6. Une instance OSRM dédiée est prévue pour les environnements autres que la simple démonstration.
-7. **Quand** un véhicule atteint l’arrivée, **alors** il repart au point de départ et reparcourt le même itinéraire sans intervention de l’administrateur.
+5. Chaque véhicule a la couleur de son itinéraire.
+6. La taile de chaque voiture est de 20x30 px.
+7. Les véhicules roulent à entre 30 et 50 Km/h.
+8. La longuer des itinéraires est de 5Km et 8 Km.
+9. Le service OSRM utilisé couvre Paris, notamment les 1er, 2e, 3e, 4e arrondissements.
+10. Une instance OSRM dédiée est prévue pour les environnements autres que la simple démonstration.
+11. **Quand** un véhicule atteint l’arrivée, **alors** il repart au point de départ et reparcourt le même itinéraire sans intervention de l’administrateur.
 
 ---
 
