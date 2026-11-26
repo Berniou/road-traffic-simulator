@@ -55,22 +55,26 @@ export class VehicleMarkers {
     this.#document = document;
   }
 
+  upsert(position) {
+    let entry = this.#markers.get(position.carId);
+
+    if (!entry) {
+      const element = createMarkerElement(this.#document, position);
+      const marker = new this.#Marker({ element, anchor: 'center' }).addTo(this.#map);
+      entry = { element, marker };
+      this.#markers.set(position.carId, entry);
+    }
+
+    entry.marker.setLngLat([position.lng, position.lat]);
+    updateMarkerElement(entry.element, position);
+  }
+
   sync(positions) {
     const visibleCarIds = new Set();
 
     for (const position of positions) {
       visibleCarIds.add(position.carId);
-      let entry = this.#markers.get(position.carId);
-
-      if (!entry) {
-        const element = createMarkerElement(this.#document, position);
-        const marker = new this.#Marker({ element, anchor: 'center' }).addTo(this.#map);
-        entry = { element, marker };
-        this.#markers.set(position.carId, entry);
-      }
-
-      entry.marker.setLngLat([position.lng, position.lat]);
-      updateMarkerElement(entry.element, position);
+      this.upsert(position);
     }
 
     for (const [carId, entry] of this.#markers) {

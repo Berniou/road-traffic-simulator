@@ -21,6 +21,26 @@ test('les notifications WebSocket actualisent les véhicules après l’initiali
   assert.deepEqual(store.snapshot(), [position('car-001', 200, 48.88)]);
 });
 
+test('une notification identifie uniquement le véhicule à actualiser', () => {
+  const store = new FleetStore();
+  const changes = [];
+  store.replaceAll([position('car-001', 100), position('car-002', 100)]);
+  store.subscribe((positions, change) => changes.push({ positions, change }));
+
+  store.upsert(position('car-002', 200, 48.88));
+
+  assert.equal(changes.length, 2);
+  assert.deepEqual(changes[0].change, { type: 'replaceAll' });
+  assert.deepEqual(changes[1].change, {
+    type: 'upsert',
+    position: position('car-002', 200, 48.88),
+  });
+  assert.deepEqual(changes[1].positions, [
+    position('car-001', 100),
+    position('car-002', 200, 48.88),
+  ]);
+});
+
 test('une réponse initiale plus ancienne ne remplace pas une notification déjà reçue', () => {
   const store = new FleetStore();
   store.upsert(position('car-001', 200, 48.88));

@@ -54,6 +54,8 @@ function createMarkers() {
 
     setLngLat(coordinates) {
       this.coordinates = coordinates;
+      this.coordinateUpdates ??= 0;
+      this.coordinateUpdates += 1;
       return this;
     }
 
@@ -136,6 +138,44 @@ test('une mise à jour ne réutilise jamais le marqueur d’un autre véhicule',
   assert.equal(created[1].element.dataset.carId, 'car-002');
   assert.deepEqual(created[0].coordinates, [2.36, 48.87]);
   assert.deepEqual(created[1].coordinates, secondCoordinates);
+});
+
+test('une notification ne déplace que son propre véhicule parmi les 7 véhicules', () => {
+  const { created, markers } = createMarkers();
+  const positions = Array.from({ length: 7 }, (_, index) =>
+    position(`car-00${index + 1}`, {
+      lng: 2.34 + index / 1000,
+      routeId: `route-00${index + 1}`,
+    }),
+  );
+  markers.sync(positions);
+  const otherPositions = created.map(({ coordinates }) => [...coordinates]);
+
+  markers.upsert(position('car-004', { lng: 2.36, heading: 180, ts: 200 }));
+
+  assert.equal(created.length, 7);
+  assert.equal(created[3].coordinateUpdates, 2);
+  assert.deepEqual(created[3].coordinates, [2.36, 48.87]);
+  assert.equal(created[3].element.icon.style.transform, 'rotate(180deg)');
+  for (const [index, marker] of created.entries()) {
+    if (index === 3) continue;
+    assert.equal(marker.coordinateUpdates, 1);
+    assert.deepEqual(marker.coordinates, otherPositions[index]);
+  }
+});
+
+test('deux véhicules évoluent indépendamment à leur propre cadence', () => {
+  const { created, markers } = createMarkers();
+  markers.sync([position('car-001'), position('car-002')]);
+
+  markers.upsert(position('car-001', { lat: 48.871, ts: 150 }));
+  markers.upsert(position('car-001', { lat: 48.872, ts: 200 }));
+  markers.upsert(position('car-002', { lat: 48.873, ts: 175 }));
+
+  assert.equal(created[0].coordinateUpdates, 3);
+  assert.deepEqual(created[0].coordinates, [2.34, 48.872]);
+  assert.equal(created[1].coordinateUpdates, 2);
+  assert.deepEqual(created[1].coordinates, [2.34, 48.873]);
 });
 
 test('les états dégradés priment sur la vitesse et les marqueurs obsolètes sont retirés', () => {

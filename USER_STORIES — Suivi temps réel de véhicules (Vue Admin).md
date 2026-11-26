@@ -190,7 +190,7 @@ afin de distinguer rapidement les véhicules sur la carte.
 
 ### US-10 — Actualiser chaque véhicule indépendamment
 
-**Statut : En attente**
+**Statut : Terminée**
 
 **En tant qu’administrateur de flotte**,  
 je veux que chaque véhicule se déplace dès réception de sa propre position,  

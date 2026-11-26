@@ -19,24 +19,40 @@ const apiUrl = new URL(window.ADMIN_API_URL ?? `http://${window.location.hostnam
 const webSocketUrl = new URL('/ws', apiUrl);
 webSocketUrl.protocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
 
-function render(positions) {
-  vehicleMarkers.sync(positions);
-  fleet.replaceChildren();
-  message.textContent = positions.length === 0 ? 'Aucune position connue.' : '';
+function renderPosition(position) {
+  let item = [...fleet.children].find((child) => child.dataset.carId === position.carId);
 
-  for (const position of positions) {
-    const item = document.createElement('li');
+  if (!item) {
+    item = document.createElement('li');
     item.dataset.carId = position.carId;
     item.innerHTML = `
       <strong></strong>
       <span></span>
       <small></small>
     `;
-    item.querySelector('strong').textContent = position.carId;
-    item.querySelector('span').textContent = `${position.lat.toFixed(6)}, ${position.lng.toFixed(6)}`;
-    item.querySelector('small').textContent = `${position.routeId} · ${position.speed} km/h · cap ${position.heading}°`;
-    fleet.append(item);
+    const nextItem = [...fleet.children].find(
+      (child) => child.dataset.carId.localeCompare(position.carId) > 0,
+    );
+    fleet.insertBefore(item, nextItem ?? null);
   }
+
+  item.querySelector('strong').textContent = position.carId;
+  item.querySelector('span').textContent = `${position.lat.toFixed(6)}, ${position.lng.toFixed(6)}`;
+  item.querySelector('small').textContent = `${position.routeId} · ${position.speed} km/h · cap ${position.heading}°`;
+}
+
+function render(positions, change) {
+  message.textContent = positions.length === 0 ? 'Aucune position connue.' : '';
+
+  if (change.type === 'upsert') {
+    vehicleMarkers.upsert(change.position);
+    renderPosition(change.position);
+    return;
+  }
+
+  vehicleMarkers.sync(positions);
+  fleet.replaceChildren();
+  for (const position of positions) renderPosition(position);
 }
 
 store.subscribe(render);
