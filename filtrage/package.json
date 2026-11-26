@@ -1,0 +1,17 @@
+{
+  "name": "suivi-temps-reel-filtrage",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Filtrage des positions Kafka en fenêtres fixes de 300 ms",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4"
+  }
+}

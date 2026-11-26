@@ -49,7 +49,7 @@ afin d’alimenter la chaîne de suivi temps réel.
 
 ### US-03 — Conserver la dernière position de chaque fenêtre
 
-**Statut : En attente**
+**Statut : Terminée**
 
 **En tant qu’administrateur de flotte**,  
 je veux recevoir uniquement la position la plus récente de chaque véhicule à intervalle régulier,  
