@@ -26,7 +26,7 @@ afin d’adapter la flotte sans modifier le code de l’application.
 
 ### US-02 — Publier les positions brutes dans Kafka
 
-**Statut : En attente**
+**Statut : Terminée**
 
 **En tant qu’exploitant de la plateforme**,  
 je veux que chaque véhicule publie régulièrement sa position dans Kafka,  

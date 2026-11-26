@@ -58,6 +58,27 @@ test('les positions respectent le schéma et restent sur leur itinéraire', () =
   assert.ok(position.heading >= 0 && position.heading < 360);
 });
 
+test('7 véhicules émettent 140 positions par seconde à la cadence nominale', (t) => {
+  t.mock.timers.enable({ apis: ['setInterval'] });
+  const positions = [];
+  const simulator = new FleetSimulator(
+    { vehicleCount: 7, positionIntervalMs: 50 },
+    (position) => positions.push(position),
+  );
+
+  simulator.start();
+  t.mock.timers.tick(1000);
+  simulator.stop();
+
+  assert.equal(positions.length, 140);
+  const counts = positions.reduce((result, { carId }) => {
+    result.set(carId, (result.get(carId) ?? 0) + 1);
+    return result;
+  }, new Map());
+  assert.equal(counts.size, 7);
+  for (const count of counts.values()) assert.equal(count, 20);
+});
+
 test('chaque véhicule émet indépendamment et le simulateur peut être arrêté', async () => {
   const receivedByCar = new Map();
   const simulator = new FleetSimulator(
