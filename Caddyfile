@@ -2,3 +2,6 @@
     reverse_proxy admin:3000
 }
 
+:8080 {
+    reverse_proxy 
+}
