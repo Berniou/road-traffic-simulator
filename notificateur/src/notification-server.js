@@ -2,6 +2,8 @@ import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
 import { PositionBroadcaster } from './position-broadcaster.js';
 
+const MAX_BODY_SIZE = 1024 * 1024;
+
 function json(response, statusCode, body) {
   response.writeHead(statusCode, {
     'Content-Type': 'application/json; charset=utf-8',
@@ -10,9 +12,30 @@ function json(response, statusCode, body) {
   response.end(JSON.stringify(body));
 }
 
-export async function createAdminWebSocketServer(config, dependencies = {}) {
+async function readJsonBody(request) {
+  const chunks = [];
+  let size = 0;
+
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > MAX_BODY_SIZE) {
+      throw new Error('Corps de requête trop volumineux.');
+    }
+    chunks.push(chunk);
+  }
+
+  if (chunks.length === 0) {
+    throw new Error('Corps de requête vide.');
+  }
+
+  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+}
+
+export async function createNotificationServer(config, dependencies = {}) {
   const httpServer = createServer(async (request, response) => {
-    if (request.method === 'GET' && request.url === '/positions') {
+    const { pathname } = new URL(request.url, 'http://localhost');
+
+    if (request.method === 'GET' && pathname === '/positions') {
       try {
         const positions = await dependencies.positionRepository?.findAll() ?? [];
         json(response, 200, positions);
@@ -23,8 +46,26 @@ export async function createAdminWebSocketServer(config, dependencies = {}) {
       return;
     }
 
+    if (request.method === 'POST' && pathname === '/notify') {
+      try {
+        const position = await readJsonBody(request);
+        broadcaster.broadcast(position);
+        json(response, 202, { status: 'notified' });
+      } catch (error) {
+        console.error(`Position non diffusée: ${error.message}`);
+        json(response, 400, { error: `Position non diffusée: ${error.message}` });
+      }
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/health') {
+      json(response, 200, { status: 'ok' });
+      return;
+    }
+
     json(response, 404, { error: 'Ressource introuvable.' });
   });
+
   const server = new WebSocketServer({
     server: httpServer,
     path: config.webSocketPath,
@@ -42,7 +83,7 @@ export async function createAdminWebSocketServer(config, dependencies = {}) {
     });
   });
 
-  httpServer.listen(config.webSocketPort, config.webSocketHost);
+  httpServer.listen(config.port, config.host);
   await new Promise((resolve, reject) => {
     httpServer.once('listening', resolve);
     httpServer.once('error', reject);

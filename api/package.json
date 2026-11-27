@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Diffusion WebSocket des dernières positions des véhicules",
+  "description": "Consommation Kafka et persistance des dernières positions des véhicules",
   "scripts": {
     "start": "node src/index.js",
     "test": "node --test"
@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "kafkajs": "^2.2.4",
-    "pg": "^8.23.1",
-    "ws": "^8.18.3"
+    "pg": "^8.23.1"
   }
 }

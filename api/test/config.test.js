@@ -2,27 +2,23 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadConfig } from '../src/config.js';
 
-test("l'API consomme car.positions.latest et expose le WebSocket Admin par défaut", () => {
+test("l'API consomme car.positions.latest et notifie le notificateur par défaut", () => {
   const config = loadConfig({});
   assert.equal(config.kafkaLatestTopic, 'car.positions.latest');
   assert.equal(config.kafkaGroupId, 'admin-position-api');
-  assert.equal(config.webSocketPort, 8080);
-  assert.equal(config.webSocketPath, '/ws');
+  assert.equal(config.notifierUrl, 'http://localhost:8080');
   assert.equal(config.databaseUrl, 'postgresql://postgres:postgres@localhost:5432/fleet');
 });
 
-test('la configuration Kafka et WebSocket est personnalisable', () => {
+test('la configuration Kafka et notificateur est personnalisable', () => {
   const config = loadConfig({
     KAFKA_BROKERS: 'kafka-1:9092, kafka-2:9092',
     KAFKA_LATEST_TOPIC: 'positions.latest',
-    WEBSOCKET_PORT: '9090',
-    WEBSOCKET_PATH: '/admin',
+    NOTIFIER_URL: 'http://notifier:8081',
     DATABASE_URL: 'postgresql://db:5432/custom-fleet',
   });
   assert.deepEqual(config.kafkaBrokers, ['kafka-1:9092', 'kafka-2:9092']);
   assert.equal(config.kafkaLatestTopic, 'positions.latest');
-  assert.equal(config.webSocketPort, 9090);
-  assert.equal(config.webSocketPath, '/admin');
+  assert.equal(config.notifierUrl, 'http://notifier:8081');
   assert.equal(config.databaseUrl, 'postgresql://db:5432/custom-fleet');
-  assert.throws(() => loadConfig({ WEBSOCKET_PORT: '70000' }), /WEBSOCKET_PORT/);
 });

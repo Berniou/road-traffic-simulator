@@ -1,18 +1,16 @@
 import { loadConfig } from './config.js';
-import { createKafkaWebSocketApi } from './kafka-websocket-api.js';
+import { createKafkaApi } from './kafka-api.js';
 
 const config = loadConfig();
 let api;
 
 try {
-  api = await createKafkaWebSocketApi(config);
-  const address = api.adminServer.address();
+  api = await createKafkaApi(config);
   console.log(
-    `API Admin à l'écoute sur ws://${config.webSocketHost}:${address.port}${config.webSocketPath}, `
-    + `positions consommées depuis ${config.kafkaLatestTopic}.`,
+    `API connectée à Kafka (${config.kafkaLatestTopic}) et au notificateur ${config.notifierUrl}.`,
   );
 } catch (error) {
-  console.error(`Impossible de démarrer l'API Admin: ${error.message}`);
+  console.error(`Impossible de démarrer l'API: ${error.message}`);
   process.exitCode = 1;
 }
 
@@ -23,7 +21,7 @@ async function shutdown() {
   try {
     await api?.close();
   } catch (error) {
-    console.error(`Erreur lors de l'arrêt de l'API Admin: ${error.message}`);
+    console.error(`Erreur lors de l'arrêt de l'API: ${error.message}`);
     process.exitCode = 1;
   }
 }

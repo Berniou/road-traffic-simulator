@@ -46,6 +46,20 @@ services:
     networks:
       - private
 
+  notificateur:
+    build:
+      context: ./notificateur
+    container_name: notificateur_container
+    environment:
+      PORT: 8080
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleet
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - private
+
   simulateur:
     build:
       context: ./simulateur
@@ -80,12 +94,14 @@ services:
     environment:
       KAFKA_BROKERS: kafka:9092
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleet
-      WEBSOCKET_PORT: 8080
+      NOTIFIER_URL: http://notificateur:8080
     depends_on:
       kafka:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      notificateur:
+        condition: service_started
     restart: unless-stopped
     networks:
       - private
@@ -102,6 +118,11 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+    depends_on:
+      admin:
+        condition: service_started
+      notificateur:
+        condition: service_started
     networks:
       - public
       - private
@@ -115,7 +136,7 @@ services:
       PORT: 3000
       OSRM_BASE_URL: ${OSRM_BASE_URL:-https://router.project-osrm.org}
     depends_on:
-      api:
+      notificateur:
         condition: service_started
     restart: unless-stopped
     networks:

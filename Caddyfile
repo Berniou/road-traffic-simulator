@@ -3,5 +3,5 @@
 }
 
 :8080 {
-    reverse_proxy 
+    reverse_proxy notificateur:8080
 }
