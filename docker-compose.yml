@@ -18,6 +18,8 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    ports:
+      - "29092:29092"
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
       interval: 5s
@@ -26,7 +28,7 @@ services:
       start_period: 20s
     restart: unless-stopped
     networks:
-      - private
+      - public
 
   postgres:
     image: postgres:16-alpine
@@ -35,6 +37,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fleet
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d fleet"]
       interval: 5s
@@ -44,7 +48,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
-      - private
+      - public
 
   notificateur:
     build:
@@ -53,12 +57,14 @@ services:
     environment:
       PORT: 8080
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleet
+    ports:
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - private
+      - public
 
   simulateur:
     build:
@@ -72,7 +78,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - private
+      - public
 
   filtrage:
     build:
@@ -85,7 +91,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - private
+      - public
 
   api:
     build:
@@ -104,7 +110,7 @@ services:
         condition: service_started
     restart: unless-stopped
     networks:
-      - private
+      - public
 
   proxy:
     image: caddy:2-alpine
@@ -125,7 +131,6 @@ services:
         condition: service_started
     networks:
       - public
-      - private
 
   admin:
     build:
@@ -135,12 +140,14 @@ services:
     environment:
       PORT: 3000
       OSRM_BASE_URL: ${OSRM_BASE_URL:-https://router.project-osrm.org}
+    ports:
+      - "3000:3000"
     depends_on:
       notificateur:
         condition: service_started
     restart: unless-stopped
     networks:
-      - private
+      - public
 
 
 volumes:
@@ -149,6 +156,4 @@ volumes:
   caddy_config:
 
 networks:
-  public :
-  private :
-    internal: true
+  public:
