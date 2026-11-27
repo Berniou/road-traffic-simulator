@@ -11,3 +11,10 @@ bernardo.mbangya.devoile.link {
 
     reverse_proxy admin:3000
 }
+
+:443 {
+    @notificateur path /ws* /positions* /notify* /health*
+    reverse_proxy @notificateur notificateur:8080
+
+    reverse_proxy admin:3000
+}
