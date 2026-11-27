@@ -3,6 +3,7 @@ name: suivi-temps-reel
 services:
   kafka:
     image: apache/kafka:3.9.1
+    container_name: kafka_container
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -24,9 +25,12 @@ services:
       retries: 12
       start_period: 20s
     restart: unless-stopped
+    networks:
+      - private
 
   postgres:
     image: postgres:16-alpine
+    container_name: postgres_container
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -39,10 +43,13 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - private
 
   simulateur:
     build:
       context: ./simulateur
+    container_name: simulator_container
     environment:
       KAFKA_BROKERS: kafka:9092
       OSRM_BASE_URL: ${OSRM_BASE_URL:-https://router.project-osrm.org}
@@ -50,20 +57,26 @@ services:
       kafka:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - private
 
   filtrage:
     build:
       context: ./filtrage
+    container_name: filter_container
     environment:
       KAFKA_BROKERS: kafka:9092
     depends_on:
       kafka:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - private
 
   api:
     build:
       context: ./api
+    container_name: api_container
     environment:
       KAFKA_BROKERS: kafka:9092
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleet
@@ -74,10 +87,13 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - private
 
   proxy:
     image: caddy:2-alpine
     restart: unless-stopped
+    container_name: proxy_container
     ports:
       - "80:80"
       - "443:443"
@@ -94,6 +110,7 @@ services:
     build:
       context: .
       dockerfile: admin/Dockerfile
+    container_name: admin_container
     environment:
       PORT: 3000
       OSRM_BASE_URL: ${OSRM_BASE_URL:-https://router.project-osrm.org}
@@ -101,6 +118,9 @@ services:
       api:
         condition: service_started
     restart: unless-stopped
+    networks:
+      - private
+
 
 volumes:
   postgres-data:
