@@ -22,7 +22,12 @@
           </p>
           <p id="message" role="status">Chargement des dernières positions connues…</p>
         </header>
-        <ul id="fleet" aria-label="Dernières positions des véhicules"></ul>
+        <div class="fleet-panel">
+          <button id="fleet-toggle" class="fleet-toggle" type="button" aria-controls="fleet" aria-expanded="true">
+            Masquer les véhicules
+          </button>
+          <ul id="fleet" aria-label="Dernières positions des véhicules"></ul>
+        </div>
       </section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>

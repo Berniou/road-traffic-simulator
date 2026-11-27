@@ -251,7 +251,7 @@ afin de ne pas devoir recharger manuellement l’interface.
 
 ---
 
-## Epic 5 — Exploitation et exigences non fonctionnelles
+## Epic 5 — Exploitation et exigences non fonctionnelles (Non réalisé)
 
 ### US-13 — Limiter le stockage Kafka à 50 Mo
 

@@ -16,7 +16,18 @@ map.addControl(new window.maplibregl.NavigationControl(), 'bottom-left');
 const store = new FleetStore();
 const vehicleMarkers = new VehicleMarkers({ map });
 const fleet = document.querySelector('#fleet');
+const fleetToggle = document.querySelector('#fleet-toggle');
 const message = document.querySelector('#message');
+
+function setFleetVisible(visible) {
+  fleet.hidden = !visible;
+  fleetToggle.setAttribute('aria-expanded', String(visible));
+  fleetToggle.textContent = visible ? 'Masquer les véhicules' : 'Afficher les véhicules';
+}
+
+fleetToggle.addEventListener('click', () => {
+  setFleetVisible(fleet.hidden);
+});
 
 loadVehicleRoutes({ map, url: '/routes' }).catch((error) => {
   message.textContent = `Impossible de charger les itinéraires : ${error.message}`;

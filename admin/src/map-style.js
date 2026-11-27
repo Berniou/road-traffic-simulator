@@ -1,4 +1,4 @@
-export const PARIS_SECOND_ARRONDISSEMENT = [2.342, 48.868];
+export const PARIS_SECOND_ARRONDISSEMENT = [2.3415, 48.8608];
 
 export function createMapStyle() {
   return {
