@@ -29,6 +29,26 @@
           <ul id="fleet" aria-label="Dernières positions des véhicules"></ul>
         </div>
       </section>
+      <aside class="architecture-panel" aria-labelledby="architecture-title">
+        <header class="architecture-panel__header">
+          <h2 id="architecture-title">Architecture temps réel</h2>
+          <p>Du simulateur à la carte, en flux vertical.</p>
+        </header>
+        <figure class="architecture-panel__figure">
+          <img
+            id="architecture-gif"
+            class="architecture-panel__gif"
+            src="/architecture.gif"
+            alt="Schéma vertical de l'architecture : simulateur → Kafka → filtrage → API et PostgreSQL → notificateur WebSocket → vue admin."
+          >
+          <p id="architecture-fallback" class="architecture-panel__fallback" hidden>
+            Déposez le schéma <code>admin/architecture.gif</code> pour l'afficher ici.
+          </p>
+          <figcaption>
+            Simulateur → Kafka → filtrage → API / PostgreSQL → notificateur → vue admin.
+          </figcaption>
+        </figure>
+      </aside>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
     <script type="module" src="/src/app.js"></script>

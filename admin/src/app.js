@@ -1,6 +1,7 @@
 import { FleetStore } from './fleet-store.js';
 import { createMapStyle, PARIS_SECOND_ARRONDISSEMENT } from './map-style.js';
 import { RealtimeConnection } from './realtime-connection.js';
+import { describeVehicle } from './vehicle-info.js';
 import { VehicleMarkers } from './vehicle-markers.js';
 import { loadVehicleRoutes } from './vehicle-routes.js';
 
@@ -18,6 +19,18 @@ const vehicleMarkers = new VehicleMarkers({ map });
 const fleet = document.querySelector('#fleet');
 const fleetToggle = document.querySelector('#fleet-toggle');
 const message = document.querySelector('#message');
+const architectureGif = document.querySelector('#architecture-gif');
+const architectureFallback = document.querySelector('#architecture-fallback');
+
+function showArchitectureFallback() {
+  architectureGif.hidden = true;
+  architectureFallback.hidden = false;
+}
+
+architectureGif.addEventListener('error', showArchitectureFallback);
+if (architectureGif.complete && architectureGif.naturalWidth === 0) {
+  showArchitectureFallback();
+}
 
 function setFleetVisible(visible) {
   fleet.hidden = !visible;
@@ -39,26 +52,61 @@ const apiUrl = new URL(window.ADMIN_API_URL ?? window.location.origin);
 const webSocketUrl = new URL('/ws', apiUrl);
 webSocketUrl.protocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
 
+function createFleetItem(position) {
+  const item = document.createElement('li');
+  item.dataset.carId = position.carId;
+  item.innerHTML = `
+    <div class="fleet-item__header">
+      <span class="fleet-item__dot" aria-hidden="true"></span>
+      <strong class="fleet-item__id"></strong>
+      <span class="fleet-item__state"></span>
+    </div>
+    <dl class="fleet-item__stats">
+      <div class="fleet-item__stat">
+        <dt>Vitesse</dt>
+        <dd class="fleet-item__speed"></dd>
+      </div>
+      <div class="fleet-item__stat">
+        <dt>Cap</dt>
+        <dd class="fleet-item__heading"></dd>
+      </div>
+      <div class="fleet-item__stat">
+        <dt>Itinéraire</dt>
+        <dd class="fleet-item__route"></dd>
+      </div>
+      <div class="fleet-item__stat fleet-item__stat--wide">
+        <dt>Position</dt>
+        <dd class="fleet-item__coords"></dd>
+      </div>
+    </dl>
+  `;
+  return item;
+}
+
 function renderPosition(position) {
   let item = [...fleet.children].find((child) => child.dataset.carId === position.carId);
 
   if (!item) {
-    item = document.createElement('li');
-    item.dataset.carId = position.carId;
-    item.innerHTML = `
-      <strong></strong>
-      <span></span>
-      <small></small>
-    `;
+    item = createFleetItem(position);
     const nextItem = [...fleet.children].find(
       (child) => child.dataset.carId.localeCompare(position.carId) > 0,
     );
     fleet.insertBefore(item, nextItem ?? null);
   }
 
-  item.querySelector('strong').textContent = position.carId;
-  item.querySelector('span').textContent = `${position.lat.toFixed(6)}, ${position.lng.toFixed(6)}`;
-  item.querySelector('small').textContent = `${position.routeId} · ${position.speed} km/h · cap ${position.heading}°`;
+  const info = describeVehicle(position);
+  item.style.setProperty('--vehicle-color', info.color);
+  item.querySelector('.fleet-item__id').textContent = position.carId;
+
+  const state = item.querySelector('.fleet-item__state');
+  state.dataset.state = info.state;
+  state.textContent = info.stateLabel;
+
+  item.querySelector('.fleet-item__speed').textContent = info.speed;
+  item.querySelector('.fleet-item__heading').textContent = info.heading;
+  item.querySelector('.fleet-item__route').textContent = info.route;
+  item.querySelector('.fleet-item__coords').textContent = info.coords;
+  item.setAttribute('aria-label', `${position.carId} — ${info.stateLabel}`);
 }
 
 function render(positions, change) {

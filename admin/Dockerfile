@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY admin/package.json ./admin/package.json
 COPY admin/index.html ./admin/index.html
+COPY admin/architecture.gif ./admin/architecture.gif
 COPY admin/src ./admin/src
 COPY simulateur/package.json ./simulateur/package.json
 COPY simulateur/src ./simulateur/src
