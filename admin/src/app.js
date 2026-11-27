@@ -24,7 +24,7 @@ loadVehicleRoutes({ map, url: '/routes' }).catch((error) => {
 
 const connectionStatus = document.querySelector('#connection-status');
 const connectionLabel = document.querySelector('#connection-label');
-const apiUrl = new URL(window.ADMIN_API_URL ?? `http://${window.location.hostname}:8080`);
+const apiUrl = new URL(window.ADMIN_API_URL ?? window.location.origin);
 const webSocketUrl = new URL('/ws', apiUrl);
 webSocketUrl.protocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
 
