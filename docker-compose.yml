@@ -3,8 +3,6 @@ name: suivi-temps-reel
 services:
   kafka:
     image: apache/kafka:3.9.1
-    ports:
-      - "29092:29092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -29,8 +27,6 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -72,14 +68,27 @@ services:
       KAFKA_BROKERS: kafka:9092
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleet
       WEBSOCKET_PORT: 8080
-    ports:
-      - "8080:8080"
     depends_on:
       kafka:
         condition: service_healthy
       postgres:
         condition: service_healthy
     restart: unless-stopped
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3 support
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - public
+      - private
 
   admin:
     build:
@@ -96,4 +105,7 @@ services:
 volumes:
   postgres-data:
 
-
+networks:
+  public :
+  private :
+    internal: true
