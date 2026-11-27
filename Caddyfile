@@ -1,4 +1,4 @@
-bernardo.mbangya.devoile.link {
+bernardombangya.devoile.link {
     @notificateur path /ws* /positions* /notify* /health*
     reverse_proxy @notificateur notificateur:8080
 
