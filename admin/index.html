@@ -11,17 +11,28 @@
     <link rel="stylesheet" href="/src/style.css">
   </head>
   <body>
-    <main class="admin-shell">
+    <main class="admin-shell" data-architecture-visible="false">
       <section class="map-frame" aria-label="Carte de la flotte à Paris (1er au 4e arrondissement)">
         <div id="map" aria-label="Carte OpenStreetMap centrée sur Paris (1er au 4e arrondissement)"></div>
-        <header class="admin-panel">
-          <h1>Traffic – Vue Admin</h1>
-          <p id="connection-status" class="connection-status" data-state="connecting" role="status" aria-live="polite">
-            <span class="connection-status__dot" aria-hidden="true"></span>
-            <span id="connection-label">Connexion au suivi temps réel…</span>
-          </p>
-          <p id="message" role="status">Chargement des dernières positions connues…</p>
-        </header>
+        <div class="map-overlay">
+          <header class="admin-panel">
+            <h1>Traffic – Vue Admin</h1>
+            <p id="connection-status" class="connection-status" data-state="connecting" role="status" aria-live="polite">
+              <span class="connection-status__dot" aria-hidden="true"></span>
+              <span id="connection-label">Connexion au suivi temps réel…</span>
+            </p>
+            <p id="message" role="status">Chargement des dernières positions connues…</p>
+          </header>
+          <button
+            id="architecture-toggle"
+            class="architecture-toggle"
+            type="button"
+            aria-controls="architecture-panel"
+            aria-expanded="false"
+          >
+            Afficher le schéma
+          </button>
+        </div>
         <div class="fleet-panel">
           <button id="fleet-toggle" class="fleet-toggle" type="button" aria-controls="fleet" aria-expanded="true">
             Masquer les véhicules
@@ -29,7 +40,7 @@
           <ul id="fleet" aria-label="Dernières positions des véhicules"></ul>
         </div>
       </section>
-      <aside class="architecture-panel" aria-labelledby="architecture-title">
+      <aside id="architecture-panel" class="architecture-panel" aria-labelledby="architecture-title" hidden>
         <header class="architecture-panel__header">
           <h2 id="architecture-title">Architecture De L'App</h2>
           <p>Du simulateur à la carte, en flux vertical.</p>

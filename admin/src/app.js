@@ -21,6 +21,9 @@ const fleetToggle = document.querySelector('#fleet-toggle');
 const message = document.querySelector('#message');
 const architectureGif = document.querySelector('#architecture-gif');
 const architectureFallback = document.querySelector('#architecture-fallback');
+const adminShell = document.querySelector('.admin-shell');
+const architecturePanel = document.querySelector('#architecture-panel');
+const architectureToggle = document.querySelector('#architecture-toggle');
 
 function showArchitectureFallback() {
   architectureGif.hidden = true;
@@ -41,6 +44,19 @@ function setFleetVisible(visible) {
 fleetToggle.addEventListener('click', () => {
   setFleetVisible(fleet.hidden);
 });
+
+function setArchitectureVisible(visible) {
+  adminShell.dataset.architectureVisible = String(visible);
+  architecturePanel.hidden = !visible;
+  architectureToggle.setAttribute('aria-expanded', String(visible));
+  architectureToggle.textContent = visible ? 'Masquer le schéma' : 'Afficher le schéma';
+}
+
+architectureToggle.addEventListener('click', () => {
+  setArchitectureVisible(adminShell.dataset.architectureVisible !== 'true');
+});
+
+setArchitectureVisible(false);
 
 loadVehicleRoutes({ map, url: '/routes' }).catch((error) => {
   message.textContent = `Impossible de charger les itinéraires : ${error.message}`;

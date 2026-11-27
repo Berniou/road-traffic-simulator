@@ -14,14 +14,44 @@ body {
 }
 
 .admin-shell {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "map";
   gap: 1rem;
   height: calc(100dvh - 2rem);
 }
 
+.admin-shell[data-architecture-visible='true'] {
+  grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+  grid-template-areas: "architecture map";
+}
+
+.architecture-toggle {
+  padding: 0.4rem 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 0.125rem 0.5rem rgb(0 0 0 / 12%);
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.architecture-toggle:hover {
+  background: #ffffff;
+}
+
+.architecture-toggle:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
 .map-frame {
   position: relative;
+  grid-area: map;
   height: 100%;
   overflow: hidden;
   border-radius: 1.5rem;
@@ -33,12 +63,19 @@ body {
   inset: 0;
 }
 
-.admin-panel {
+.map-overlay {
   position: absolute;
   z-index: 1;
   top: 1rem;
   left: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
   max-width: calc(100% - 5rem);
+}
+
+.admin-panel {
   padding: 1rem 1.25rem;
   border-radius: 1rem;
   background: rgb(255 255 255 / 94%);
@@ -224,6 +261,7 @@ body {
 .architecture-panel {
   display: flex;
   flex-direction: column;
+  grid-area: architecture;
   gap: 1rem;
   height: 100%;
   padding: 1.25rem;
@@ -231,6 +269,10 @@ body {
   border-radius: 1.5rem;
   background: #ffffff;
   box-shadow: 0 0.5rem 2rem rgb(0 0 0 / 15%);
+}
+
+.architecture-panel[hidden] {
+  display: none;
 }
 
 .architecture-panel__header h2 {
@@ -328,9 +370,11 @@ body {
 }
 
 @media (max-width: 60rem) {
-  .admin-shell {
+  .admin-shell,
+  .admin-shell[data-architecture-visible='true'] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: "map" "architecture";
   }
 
   .architecture-panel {
@@ -357,7 +401,41 @@ body {
     max-height: 35%;
   }
 
-  .architecture-panel {
-    max-height: 32dvh;
+  .admin-shell[data-architecture-visible='true'] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "map" "architecture";
+  }
+
+  .admin-shell[data-architecture-visible='true'] .map-frame {
+    height: auto;
+  }
+
+  .admin-shell[data-architecture-visible='true'] #map,
+  .admin-shell[data-architecture-visible='true'] .fleet-panel {
+    display: none;
+  }
+
+  .admin-shell[data-architecture-visible='true'] .map-overlay {
+    position: static;
+    max-width: none;
+    padding: 0.75rem;
+  }
+
+  .admin-shell[data-architecture-visible='true'] .architecture-panel {
+    height: 100%;
+    max-height: none;
+    overflow: hidden;
+  }
+
+  .architecture-panel__figure {
+    overflow: hidden;
+  }
+
+  .architecture-panel__gif {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    object-fit: contain;
   }
 }
